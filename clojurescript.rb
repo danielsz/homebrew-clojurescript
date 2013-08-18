@@ -9,28 +9,18 @@ class Clojurescript < Formula
 
   def install
     system "./script/bootstrap"
-    ['bin/cljsc', 'script/repl', 'script/repljs', 'script/browser-repl'].each { |file| set_env(file) } 
-    prefix.install Dir['*']
+    inreplace %w(bin/cljsc script/repl script/repljs script/browser-repl), "#!/bin/sh", "#!/bin/sh\nCLOJURESCRIPT_HOME=#{libexec}"
+    libexec.install Dir['*']
+    bin.write_exec_script libexec/'bin/cljsc'
   end
 
   test do
-    system "cljsc"
+    system "#{bin}/cljsc"
   end
 
   def caveats; <<-EOS.undent
-    This formula is useful if you need to use the ClojureScript compiler directly.  
+    This formula is useful if you need to use the ClojureScript compiler directly.
     For a more integrated workflow, Leiningen with lein-cljsbuild is recommended.
     EOS
   end
-  
-  private
-
-  def set_env(file)
-    lines = IO.readlines(file)
-    lines.insert(1, "CLOJURESCRIPT_HOME=#{prefix}")
-    File.open(file, 'w') do |file|
-      file.puts lines
-    end
-  end
-
 end
